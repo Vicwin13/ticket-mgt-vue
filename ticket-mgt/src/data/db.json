@@ -1,0 +1,28 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "email": "johndoe@gmail.com",
+      "password": "John1@doe",
+      "token": "mocked-jwt-1"
+    },
+    {
+      "id": "2",
+      "email": "janedoe@gmail.com",
+      "password": "Jane1@doe",
+      "token": "mocked-jwt-2"
+    },
+    {
+      "id": "a867",
+      "email": "janedoe@gmail.com",
+      "password": "Jane1@doe"
+    }
+  ],
+  "tickets": [
+    {
+      "id": "1",
+      "title": "Ticket 1",
+      "status": "open"
+    }
+  ]
+}
