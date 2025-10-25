@@ -3,7 +3,6 @@ import axios from 'axios'
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-// const username = ref('username.value')
 const email = ref('')
 const password = ref('')
 const errorMessage = ref('')
@@ -13,12 +12,10 @@ const router = useRouter()
 
 const Login = async () => {
   try {
-    // First, get all users to find the one with matching email
     const usersResponse = await axios.get('/api/users')
     const user = usersResponse.data.find((u) => u.email === email.value)
 
     if (user && user.password === password.value) {
-      // User found and password matches
       console.log('Login successful for:', email.value)
       localStorage.setItem('auth_token', user.token || 'mock-token')
       localStorage.setItem('user_id', user.id)
@@ -26,7 +23,6 @@ const Login = async () => {
       errorMessage.value = ''
       router.push('/dashboard')
     } else {
-      // User not found or password doesn't match
       errorMessage.value = 'Invalid email or password'
       successMessage.value = ''
     }
