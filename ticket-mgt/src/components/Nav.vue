@@ -4,10 +4,25 @@
 
     <div class="cta">
       <router-link to="/login" class="login-btn">Login</router-link>
-      <button>Get Started</button>
+      <button @click="handleGetStarted">Get Started</button>
     </div>
   </nav>
 </template>
+
+<script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const handleGetStarted = () => {
+  const token = localStorage.getItem('auth_token')
+  if (token) {
+    router.push('/dashboard')
+  } else {
+    router.push('/login')
+  }
+}
+</script>
 
 <style scope>
 nav {

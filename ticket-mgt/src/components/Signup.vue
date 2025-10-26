@@ -1,20 +1,39 @@
 <script setup>
 import axios from 'axios'
 import { ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 
+const firstName = ref('')
+const lastName = ref('')
 const email = ref('')
 const password = ref('')
+const confirmPassword = ref('')
 const showPassword = ref(false)
+const showConfirmPassword = ref(false)
 
 const router = useRouter()
 const toast = useToast()
 
-const Login = async () => {
-  
-  if (!email.value || !password.value) {
+const Signup = async () => {
+  if (
+    !firstName.value ||
+    !lastName.value ||
+    !email.value ||
+    !password.value ||
+    !confirmPassword.value
+  ) {
     toast.error('All fields are required')
+    return
+  }
+
+  if (password.value !== confirmPassword.value) {
+    toast.error('Passwords do not match')
+    return
+  }
+
+  if (password.value.length < 6) {
+    toast.error('Password must be at least 6 characters long')
     return
   }
 
@@ -25,24 +44,31 @@ const Login = async () => {
   }
 
   try {
+    // Check if user already exists
     const usersResponse = await axios.get('/api/users')
-    const user = usersResponse.data.find((u) => u.email === email.value)
+    const existingUser = usersResponse.data.find((u) => u.email === email.value)
 
-    if (user && user.password === password.value) {
-      console.log('Login successful for:', email.value)
-      localStorage.setItem('auth_token', user.token || 'mock-token')
-      localStorage.setItem('user_id', user.id)
-      localStorage.setItem(
-        'user_name',
-        `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
-      )
-      toast.success('Login successful')
-      router.push('/dashboard')
-    } else {
-      toast.error('Invalid email or password')
+    if (existingUser) {
+      toast.error('User with this email already exists')
+      return
     }
+
+    // Create new user
+    const newUser = {
+      id: Date.now().toString(),
+      firstName: firstName.value,
+      lastName: lastName.value,
+      email: email.value,
+      password: password.value,
+      token: `mocked-jwt-${Date.now()}`,
+    }
+
+    await axios.post('/api/users', newUser)
+
+    toast.success('Account created successfully! Please login.')
+    router.push('/login')
   } catch (error) {
-    console.error('Login error:', error)
+    console.error('Signup error:', error)
     toast.error('Something went wrong, Please try again')
   }
 }
@@ -50,19 +76,31 @@ const Login = async () => {
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
 }
+
+const toggleConfirmPasswordVisibility = () => {
+  showConfirmPassword.value = !showConfirmPassword.value
+}
 </script>
 
 <template>
   <section class="total-container">
     <div class="first_container">This is the image part</div>
 
-    <div class="login-container">
-      <div class="login-form">
+    <div class="signup-container">
+      <div class="signup-form">
         <div class="heading">
-          <h2>Login</h2>
-          <p class="subtext">Transform your chaotic schedules into organized tickets</p>
+          <h2>Sign Up</h2>
+          <p class="subtext">Create an account to manage your tickets efficiently</p>
         </div>
-        <form @submit.prevent="Login">
+        <form @submit.prevent="Signup">
+          <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input type="text" id="firstName" v-model="firstName" required />
+          </div>
+          <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input type="text" id="lastName" v-model="lastName" required />
+          </div>
           <div class="form-group">
             <label for="email">Email</label>
             <input type="email" id="email" v-model="email" required />
@@ -117,11 +155,61 @@ const togglePasswordVisibility = () => {
               </button>
             </div>
           </div>
-          <button type="submit" class="login-btn">Login</button>
+          <div class="form-group password-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <div class="password-input-container">
+              <input
+                :type="showConfirmPassword ? 'text' : 'password'"
+                id="confirmPassword"
+                v-model="confirmPassword"
+                required
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                @click="toggleConfirmPasswordVisibility"
+                aria-label="Toggle confirm password visibility"
+              >
+                <svg
+                  v-if="showConfirmPassword"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                  ></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+                <svg
+                  v-else
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <button type="submit" class="signup-btn">Sign Up</button>
         </form>
-        <p class="signup-link">
-          Don't have an account?
-          <router-link to="/signup" class="link">Sign Up</router-link>
+        <p class="login-link">
+          Already have an account?
+          <router-link to="/login" class="link">Login</router-link>
         </p>
       </div>
     </div>
@@ -142,7 +230,7 @@ const togglePasswordVisibility = () => {
   width: 100%;
 }
 
-.login-container {
+.signup-container {
   background-color: #f7f7f7;
   height: inherit;
   width: 100%;
@@ -152,7 +240,7 @@ const togglePasswordVisibility = () => {
   align-items: center;
 }
 
-.login-form {
+.signup-form {
   background: white;
   padding: 2rem;
   border-radius: 8px;
@@ -185,7 +273,7 @@ input {
   font-size: 1rem;
 }
 
-.login-btn {
+.signup-btn {
   width: 100%;
   padding: 0.75rem;
   background-color: #0066ff;
@@ -198,7 +286,7 @@ input {
   margin-top: 20px;
 }
 
-.login-btn:hover {
+.signup-btn:hover {
   background-color: #0052cc;
 }
 
@@ -212,7 +300,7 @@ input {
   font-size: 12px;
 }
 
-.signup-link {
+.login-link {
   margin-top: 20px;
   text-align: center;
   font-size: 14px;
