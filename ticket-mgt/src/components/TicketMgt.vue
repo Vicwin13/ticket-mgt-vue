@@ -1,7 +1,7 @@
 <template>
   <section class="ticket-management">
     <div class="header">
-      <div class="header-left">
+      <div >
         <button class="back-btn" @click="goToDashboard">
           <svg
             width="20"
@@ -848,11 +848,7 @@ onMounted(() => {
   }
 }
 
-.header-left { 
-  display: flex; 
-  align-items: 
-  center; gap: 1rem; 
-} 
+
 .back-btn { 
   display: flex;
   align-items: center; 
@@ -873,10 +869,12 @@ onMounted(() => {
 }
   .header-text h1 { 
     color: #333; 
-    margin-bottom: 0.5rem; 
+    padding-top: 1rem;
+    margin: 0;
   } 
   .header-text p { 
     color: #666; 
     margin: 0; 
+    padding: 0;
   }
   </style>

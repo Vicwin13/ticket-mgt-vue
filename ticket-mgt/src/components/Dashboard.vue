@@ -5,7 +5,7 @@
         {{ isCollapsed ? '→' : '←' }}
       </button>
       <div v-if="!isCollapsed" class="sidebar-content">
-        <h3>Navigation</h3>
+        
         <nav class="nav-links">
           <router-link to="/" class="nav-link">Home</router-link>
           <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
@@ -182,25 +182,23 @@ const formatDate = (dateString) => {
 }
 
 onMounted(async () => {
-  // Get user information
+  
   const userId = localStorage.getItem('user_id')
   if (userId) {
     try {
-      // In a real app, you would fetch user data from an API
-      // For now, we'll use a mock implementation
       const response = await fetch('/api/users')
       const users = await response.json()
       const user = users.find((u) => u.id === userId)
       if (user && user.firstName) {
-        // Use first name with capital letter
+        
         userName.value = user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1)
       } else {
-        // Fallback to email username if firstName is not available
+        
         userName.value = user ? user.email.split('@')[0] : 'User'
       }
     } catch (error) {
       console.error('Error fetching user data:', error)
-      // Fallback to stored user name or default
+      
       const storedName = localStorage.getItem('user_name')
       if (storedName) {
         const firstName = storedName.split(' ')[0]
@@ -219,13 +217,13 @@ onMounted(async () => {
 <style scoped>
 .dashboard {
   display: flex;
-  height: 100vh;
+  min-height: calc(100vh - 60px); /* Subtract footer height */
 }
 
 .side {
   border-right: 2px solid #e0e0e0;
   width: 250px;
-  height: 100%;
+  min-height: calc(100vh - 60px); /* Subtract footer height */
   background-color: #f8f9fa;
   transition: width 0.3s ease;
   position: relative;
@@ -274,14 +272,18 @@ onMounted(async () => {
   flex-direction: column;
   gap: 1rem;
   margin-bottom: 2rem;
+  background: none;
 }
 
 .nav-link {
+  font-weight: 600;
   padding: 0.75rem 1rem;
   border-radius: 4px;
   text-decoration: none;
   color: #333;
+  width: 100%;
   transition: background-color 0.2s;
+  
 }
 
 .nav-link:hover {
@@ -311,8 +313,10 @@ onMounted(async () => {
 .bigger-side {
   flex: 1;
   width: 100%;
-  height: 100%;
+  min-height: calc(100vh - 60px); /* Subtract footer height */
   transition: margin-left 0.3s ease;
+  padding:1rem;
+
 }
 
 .bigger-side.expanded {
@@ -323,12 +327,11 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 7rem;
+  height: 10rem;
   padding: 3rem;
-  margin-top: 1rem;
-  width: 95%;
+  width: 100%;
   margin: 0 auto;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0166ff 0%, #764ba2 100%);
   border-radius: 8px;
   color: white;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -371,8 +374,7 @@ onMounted(async () => {
 .recent-tickets {
   margin-top: 2rem;
   padding: 0 2rem;
-  height: calc(100vh - 400px); /* Set a
-fixed height based on viewport */
+  min-height: calc(100vh - 460px); /* Adjusted to account for footer */
   display: flex;
   flex-direction: column;
 }

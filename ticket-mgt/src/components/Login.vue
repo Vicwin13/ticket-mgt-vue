@@ -1,6 +1,6 @@
 <script setup>
 import axios from 'axios'
-import { ref } from 'vue'
+import { ref, defineProps, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 
@@ -10,6 +10,14 @@ const showPassword = ref(false)
 
 const router = useRouter()
 const toast = useToast()
+
+const props = defineProps({
+  image: {
+    type: String
+  }
+})
+
+
 
 const Login = async () => {
   
@@ -59,12 +67,18 @@ const togglePasswordVisibility = () => {
 
 <template>
   <section class="total-container">
-    <div class="first_container">This is the image part</div>
+    <div class="first_container">
+      <div class="f_cont">
+
+        <h1>Tixily</h1>  
+        <p>Organization at its Peak</p>
+      </div>
+    </div>
 
     <div class="login-container">
       <div class="login-form">
         <div class="heading">
-          <h2>Login</h2>
+          <h2>Login to Tixily</h2>
           <p class="subtext">Transform your chaotic schedules into organized tickets</p>
         </div>
         <form @submit.prevent="Login">
@@ -142,9 +156,25 @@ const togglePasswordVisibility = () => {
 }
 
 .first_container {
-  background-color: hotpink;
+  display: relative;
+  background: url('../assets/aaabstract.webp');
   height: inherit;
   width: 100%;
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.f_cont{
+  color: white;
+  
+}
+.f_cont p{
+  font-size: 3rem;
+}
+.f_cont h1{
+  font-size: 4rem;
 }
 
 .login-container {
@@ -193,7 +223,7 @@ input {
 .login-btn {
   width: 100%;
   padding: 0.75rem;
-  background-color: #0066ff;
+  background-color: #0166ff;
   color: white;
   border: none;
   border-radius: 4px;
@@ -263,5 +293,19 @@ input {
 
 .password-toggle:hover {
   color: #333;
+}
+
+
+
+
+
+
+
+
+
+@media screen and (width <= 820px) {
+  .first_container{
+    display: none;
+  }
 }
 </style>

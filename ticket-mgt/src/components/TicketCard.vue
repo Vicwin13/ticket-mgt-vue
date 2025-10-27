@@ -50,15 +50,15 @@ const imageSrc = computed(() => {
   border-radius: 10px;
   max-width: 20rem;
   width: 100%;
-  box-shadow: 0px 0px 2px 2px rgba(0, 0, 0, 0.5);
+  box-shadow: 0px 0px 4px 1px #b8b7b7;
   padding: 0.4rem 1rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
+  justify-content: space-evenly;
 }
 
 h2 {
-  font-size: 1.3rem;
+  font-size: 1rem;
   font-weight: 500;
 }
 .card-head {
@@ -67,7 +67,7 @@ h2 {
   align-items: center;
 }
 .card-body p {
-  font-size: 40px;
+  font-size: 30px;
   font-weight: 500;
 }
 img {

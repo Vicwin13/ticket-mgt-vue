@@ -77,12 +77,17 @@ const toggleConfirmPasswordVisibility = () => {
 
 <template>
   <section class="total-container">
-    <div class="first_container">This is the image part</div>
+     <div class="first_container">
+      <div class="f_cont">
 
+        <h1>Tixily</h1>  
+        <p>Organization at its Peak</p>
+      </div>
+    </div>
     <div class="signup-container">
       <div class="signup-form">
         <div class="heading">
-          <h2>Sign Up</h2>
+          <h2>Sign Up for Tixily</h2>
           <p class="subtext">Create an account to manage your tickets efficiently</p>
         </div>
         <form @submit.prevent="Signup">
@@ -216,12 +221,28 @@ const toggleConfirmPasswordVisibility = () => {
   align-items: center;
   height: 100vh;
 }
-
 .first_container {
-  background-color: hotpink;
+  display: relative;
+  background: url('../assets/aaabstract.webp');
   height: inherit;
   width: 100%;
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
+.f_cont{
+  color: white;
+  
+}
+.f_cont p{
+  font-size: 3rem;
+}
+.f_cont h1{
+  font-size: 4rem;
+}
+
 
 .signup-container {
   background-color: #f7f7f7;
