@@ -154,9 +154,16 @@
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const toast = useToast()
+const router = useRouter()
+
+// Get authentication token
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('auth_token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
 
 // State
 const tickets = ref([])
@@ -213,11 +220,16 @@ const highlightedTicketId = computed(() => {
 // Methods
 const fetchTickets = async () => {
   try {
-    const response = await axios.get('/api/tickets')
+    const response = await axios.get('/api/tickets', { headers: getAuthHeaders() })
     tickets.value = response.data
   } catch (error) {
     console.error('Error fetching tickets:', error)
-    toast.error('Failed to fetch tickets')
+    if (error.response && error.response.status === 401) {
+      toast.error('Authentication failed. Please login again.')
+      router.push('/login')
+    } else {
+      toast.error('Failed to fetch tickets')
+    }
   }
 }
 
@@ -305,7 +317,7 @@ const saveTicket = async () => {
 
     if (isEditMode.value) {
       // Update existing ticket
-      await axios.put(`/api/tickets/${ticketForm.value.id}`, ticketData)
+      await axios.put(`/api/tickets/${ticketForm.value.id}`, ticketData, { headers: getAuthHeaders() })
       toast.success('Ticket updated successfully')
     } else {
       // Create new ticket
@@ -315,7 +327,7 @@ const saveTicket = async () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
-      await axios.post('/api/tickets', newTicket)
+      await axios.post('/api/tickets', newTicket, { headers: getAuthHeaders() })
       toast.success('Ticket created successfully')
     }
 
@@ -343,13 +355,18 @@ const confirmDelete = async () => {
   if (!ticketToDelete.value) return
 
   try {
-    await axios.delete(`/api/tickets/${ticketToDelete.value.id}`)
+    await axios.delete(`/api/tickets/${ticketToDelete.value.id}`, { headers: getAuthHeaders() })
     toast.success('Ticket deleted successfully')
     await fetchTickets()
     closeDeleteModal()
   } catch (error) {
     console.error('Error deleting ticket:', error)
-    toast.error('Failed to delete ticket')
+    if (error.response && error.response.status === 401) {
+      toast.error('Authentication failed. Please login again.')
+      router.push('/login')
+    } else {
+      toast.error('Failed to delete ticket')
+    }
   }
 }
 

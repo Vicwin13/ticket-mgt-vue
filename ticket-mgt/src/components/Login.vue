@@ -25,25 +25,30 @@ const Login = async () => {
   }
 
   try {
-    const usersResponse = await axios.get('/api/users')
-    const user = usersResponse.data.find((u) => u.email === email.value)
+    // Use Netlify Function for login
+    const response = await axios.post('/api/users', {
+      email: email.value,
+      password: password.value
+    })
 
-    if (user && user.password === password.value) {
-      console.log('Login successful for:', email.value)
-      localStorage.setItem('auth_token', user.token || 'mock-token')
-      localStorage.setItem('user_id', user.id)
-      localStorage.setItem(
-        'user_name',
-        `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
-      )
-      toast.success('Login successful')
-      router.push('/dashboard')
-    } else {
-      toast.error('Invalid email or password')
-    }
+    const { user, token } = response.data
+    
+    console.log('Login successful for:', email.value)
+    localStorage.setItem('auth_token', token)
+    localStorage.setItem('user_id', user.id)
+    localStorage.setItem(
+      'user_name',
+      `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+    )
+    toast.success('Login successful')
+    router.push('/dashboard')
   } catch (error) {
     console.error('Login error:', error)
-    toast.error('Something went wrong, Please try again')
+    if (error.response && error.response.data && error.response.data.error) {
+      toast.error(error.response.data.error)
+    } else {
+      toast.error('Something went wrong, Please try again')
+    }
   }
 }
 

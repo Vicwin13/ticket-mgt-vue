@@ -44,32 +44,25 @@ const Signup = async () => {
   }
 
   try {
-    // Check if user already exists
-    const usersResponse = await axios.get('/api/users')
-    const existingUser = usersResponse.data.find((u) => u.email === email.value)
-
-    if (existingUser) {
-      toast.error('User with this email already exists')
-      return
-    }
-
-    // Create new user
-    const newUser = {
-      id: Date.now().toString(),
+    // Use Netlify Function for registration
+    const response = await axios.post('/api/users/register', {
       firstName: firstName.value,
       lastName: lastName.value,
       email: email.value,
-      password: password.value,
-      token: `mocked-jwt-${Date.now()}`,
-    }
+      password: password.value
+    })
 
-    await axios.post('/api/users', newUser)
-
+    const { user, token } = response.data
+    
     toast.success('Account created successfully! Please login.')
     router.push('/login')
   } catch (error) {
     console.error('Signup error:', error)
-    toast.error('Something went wrong, Please try again')
+    if (error.response && error.response.data && error.response.data.error) {
+      toast.error(error.response.data.error)
+    } else {
+      toast.error('Something went wrong, Please try again')
+    }
   }
 }
 
