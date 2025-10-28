@@ -48,7 +48,6 @@ const imageSrc = computed(() => {
 <style scoped>
 .card {
   border-radius: 10px;
-  max-width: 20rem;
   width: 100%;
   box-shadow: 0px 0px 4px 1px #b8b7b7;
   padding: 0.4rem 1rem;
@@ -64,13 +63,17 @@ h2 {
 .card-head {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: start;
 }
 .card-body p {
   font-size: 30px;
   font-weight: 500;
 }
 img {
-  width: 1.5rem;
+  width: 1.2rem;
+}
+.card-body p{
+  
+  font-size: 1.5rem;
 }
 </style>

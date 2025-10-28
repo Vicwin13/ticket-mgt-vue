@@ -409,7 +409,8 @@ onMounted(() => {
 <style scoped>
 .ticket-management {
   padding: 2rem;
-  max-width: 1200px;
+  max-width: 1440px;
+  width: 100%;
   margin: 0 auto;
 }
 
@@ -527,18 +528,18 @@ onMounted(() => {
 }
 
 .status.open {
-  background-color: #e3f2fd;
-  color: #1976d2;
+  background-color: #1af705;
+  color: black;
 }
 
 .status.in-progress {
-  background-color: #fff8e1;
-  color: #f57c00;
+  color: #fff8e1;
+  background-color: #f57c00;
 }
 
 .status.closed {
-  background-color: #e8f5e9;
-  color: #388e3c;
+  background-color: #878887;
+  color: white;
 }
 
 .ticket-description {

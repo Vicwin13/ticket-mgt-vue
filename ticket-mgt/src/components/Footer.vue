@@ -48,6 +48,7 @@ onMounted(() => {
   padding: 1rem 0;
   margin-top: auto;
   width: 100%;
+  border: none;
 }
 
 .footer-content {

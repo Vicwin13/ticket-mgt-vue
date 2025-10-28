@@ -83,7 +83,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import TicketCard from './TicketCard.vue'
 import axios from 'axios'
@@ -92,6 +92,7 @@ const router = useRouter()
 const isCollapsed = ref(false)
 const userName = ref('User')
 const tickets = ref([])
+const screenWidth = ref(window.innerWidth)
 
 const logout = () => {
   localStorage.removeItem('auth_token')
@@ -102,6 +103,16 @@ const logout = () => {
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value
 }
+
+// Update screen width on window resize
+const updateScreenWidth = () => {
+  screenWidth.value = window.innerWidth
+}
+
+// Auto-collapse sidebar on small screens
+const shouldAutoCollapse = computed(() => {
+  return screenWidth.value < 800
+})
 
 const currentDate = computed(() => {
   const now = new Date()
@@ -182,6 +193,13 @@ const formatDate = (dateString) => {
 }
 
 onMounted(async () => {
+  // Add window resize listener
+  window.addEventListener('resize', updateScreenWidth)
+  
+  // Check initial screen size
+  if (screenWidth.value < 800) {
+    isCollapsed.value = true
+  }
   
   const userId = localStorage.getItem('user_id')
   if (userId) {
@@ -211,6 +229,17 @@ onMounted(async () => {
 
   // Fetch tickets for dashboard
   await fetchTickets()
+})
+
+onUnmounted(() => {
+  // Clean up window resize listener
+  window.removeEventListener('resize', updateScreenWidth)
+})
+// Watch for screen width changes and auto-collapse/expand sidebar
+watch(shouldAutoCollapse, (newValue) => {
+  if (newValue) {
+    isCollapsed.value = true
+  }
 })
 </script>
 
@@ -315,13 +344,9 @@ onMounted(async () => {
   width: 100%;
   min-height: calc(100vh - 60px); /* Subtract footer height */
   transition: margin-left 0.3s ease;
-  padding:1rem;
-
+  padding:.5rem;  
 }
 
-.bigger-side.expanded {
-  margin-left: -50px;
-}
 
 .head {
   display: flex;
@@ -335,6 +360,7 @@ onMounted(async () => {
   border-radius: 8px;
   color: white;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 .head h1 {
@@ -349,9 +375,11 @@ onMounted(async () => {
 
 .cards {
   display: flex;
-  height: 10rem;
+  height: auto;
   justify-content: space-evenly;
   margin-top: 20px;
+  gap: 10px;
+  
 }
 
 .total-tickets {
@@ -373,7 +401,7 @@ onMounted(async () => {
 }
 .recent-tickets {
   margin-top: 2rem;
-  padding: 0 2rem;
+  
   min-height: calc(100vh - 460px); /* Adjusted to account for footer */
   display: flex;
   flex-direction: column;
@@ -390,8 +418,7 @@ shrinking */
   flex-direction: column;
   gap: 1rem;
   overflow-y: auto;
-  /* Enable vertical scrolling */
-  flex: 1; /* Allow the list to grow and fill available space */
+  flex: 1;
   padding-right: 0.5rem; /* Add some padding for scrollbar */
 }
 .ticket-item {
@@ -439,16 +466,16 @@ shrinking */
   font-weight: 500;
 }
 .ticket-meta .status.open {
-  background-color: #e3f2fd;
-  color: #1976d2;
+  background-color: #1af705;
+  color: #444546;
 }
 .ticket-meta .status.in-progress {
-  background-color: #fff8e1;
-  color: #f57c00;
+  background-color: #f57c00;
+  color: #fff8e1;
 }
 .ticket-meta .status.closed {
-  background-color: #e8f5e9;
-  color: #388e3c;
+  background-color: #7f817f;
+  color: #f7f7f7;
 }
 .ticket-meta .priority {
   padding: 0.25rem 0.75rem;
@@ -487,7 +514,7 @@ shrinking */
   font-style: italic;
 } /* Responsive Design */
 @media (max-width: 768px) {
-  .ticket-item {
+  /* .ticket-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
@@ -498,8 +525,30 @@ shrinking */
   .ticket-meta {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.25rem;
+    gap: 0.25rem ;
+  } */
+  .head{
+    padding: 1rem;
   }
+  .total-tickets {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: .3rem .5rem;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  position: absolute;
+  right: 10px;
+}
+.total-tickets h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: .5rem;
+  font-weight: 500;
+}
+.cards{
+  flex-direction: column;
+  margin-bottom: 2rem;
+  
+}
 }
 
 /* Additional styles for no-tickets section */
