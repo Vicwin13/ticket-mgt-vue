@@ -97,6 +97,7 @@ const screenWidth = ref(window.innerWidth)
 const logout = () => {
   localStorage.removeItem('auth_token')
   localStorage.removeItem('user_id')
+  localStorage.removeItem('user_name')
   window.location.href = '/login'
 }
 
@@ -156,7 +157,7 @@ const recentTickets = computed(() => {
 
 const fetchTickets = async () => {
   try {
-    const response = await axios.get('/api/tickets')
+    const response = await axios.get('/.netlify/functions/api/tickets')
     tickets.value = response.data
   } catch (error) {
     console.error('Error fetching tickets:', error)
@@ -201,31 +202,39 @@ onMounted(async () => {
     isCollapsed.value = true
   }
   
-  const userId = localStorage.getItem('user_id')
-  if (userId) {
-    try {
-      const response = await fetch('/api/users')
-      const users = await response.json()
-      const user = users.find((u) => u.id === userId)
+  const userId = localStorage.getItem('user_id');
+if (userId) {
+  try {
+    const token = localStorage.getItem('auth_token');
+    const response = await fetch('/.netlify/functions/api/users', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (response.ok) {
+      const users = await response.json();
+      const user = users.find((u) => u.id === userId);
       if (user && user.firstName) {
-        
-        userName.value = user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1)
+        userName.value = user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1);
       } else {
-        
-        userName.value = user ? user.email.split('@')[0] : 'User'
+        userName.value = user ? user.email.split('@')[0] : 'User';
       }
-    } catch (error) {
-      console.error('Error fetching user data:', error)
-      
-      const storedName = localStorage.getItem('user_name')
-      if (storedName) {
-        const firstName = storedName.split(' ')[0]
-        userName.value = firstName.charAt(0).toUpperCase() + firstName.slice(1)
-      } else {
-        userName.value = 'User'
-      }
+    } else {
+      throw new Error('Failed to fetch user data');
+    }
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    // Fallback to stored name
+    const storedName = localStorage.getItem('user_name');
+    if (storedName) {
+      const firstName = storedName.split(' ')[0];
+      userName.value = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+    } else {
+      userName.value = 'User';
     }
   }
+}
 
   // Fetch tickets for dashboard
   await fetchTickets()

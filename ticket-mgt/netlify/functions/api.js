@@ -1,69 +1,297 @@
-// Main API router for Netlify Functions
-const router = require('express')();
+// netlify/functions/api.js - COMPLETE VERSION WITH TICKETS
+let users = [];
+let tickets = [];
+let userIdCounter = 1;
+let ticketIdCounter = 1;
 
-// Import route handlers
-const usersRouter = require('./users');
-const ticketsRouter = require('./tickets');
+function generateToken(user) {
+  return `mocked-jwt-${user.id}-${Date.now()}`;
+}
 
-// Use route handlers
-router.use('/users', usersRouter);
-router.use('/tickets', ticketsRouter);
+// Helper function to authenticate user from token
+function authenticateUser(authHeader) {
+  if (!authHeader) return null;
+  
+  const token = authHeader.replace('Bearer ', '');
+  return users.find(user => user.token === token);
+}
 
-// Export handler for Netlify Functions
 exports.handler = async (event, context) => {
-  // Convert the event to an Express-like request
-  const request = {
-    method: event.httpMethod,
-    path: event.path,
-    query: event.queryStringParameters || {},
-    body: event.body ? JSON.parse(event.body) : {},
-    headers: event.headers || {}
+  console.log('API CALLED:', event.httpMethod, event.path);
+  
+  // Handle CORS
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
   };
 
-  // Mock Express response object
-  let response = {
-    statusCode: 200,
-    body: '',
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
-    }
-  };
-
-  // Handle CORS preflight
-  if (request.method === 'OPTIONS') {
-    return response;
+  // Handle preflight
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: '' };
   }
 
+  const path = event.path.replace('/.netlify/functions/api', '');
+  
   try {
-    // Route handling
-    const pathSegments = request.path.split('/').filter(segment => segment);
-    
-    // Remove 'api' from the beginning if present
-    if (pathSegments[0] === 'api') {
-      pathSegments.shift();
+    // USER REGISTRATION
+    if (event.httpMethod === 'POST' && path === '/users/register') {
+      const body = JSON.parse(event.body);
+      const { firstName, lastName, email, password } = body;
+      
+      console.log('Registration attempt:', { email, firstName, lastName });
+      
+      // Validation
+      if (!firstName || !lastName || !email || !password) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'All fields are required' })
+        };
+      }
+
+      // Check if user exists
+      if (users.find(u => u.email === email)) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'User already exists' })
+        };
+      }
+
+      // Create user
+      const newUser = {
+        id: userIdCounter.toString(),
+        firstName,
+        lastName,
+        email,
+        password,
+        token: generateToken({ id: userIdCounter.toString() })
+      };
+
+      users.push(newUser);
+      userIdCounter++;
+
+      // Return without password
+      const { password: _, ...userResponse } = newUser;
+      
+      console.log('User registered successfully:', userResponse.email);
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          user: userResponse,
+          token: newUser.token
+        })
+      };
     }
 
-    // Route to appropriate handler
-    if (pathSegments[0] === 'users') {
-      response = await handleUsersRequest(request, pathSegments.slice(1));
-    } else if (pathSegments[0] === 'tickets') {
-      response = await handleTicketsRequest(request, pathSegments.slice(1));
-    } else {
-      response.statusCode = 404;
-      response.body = JSON.stringify({ error: 'Not found' });
+    // USER LOGIN
+    if (event.httpMethod === 'POST' && path === '/users') {
+      const body = JSON.parse(event.body);
+      const { email, password } = body;
+      
+      const user = users.find(u => u.email === email && u.password === password);
+      
+      if (!user) {
+        return {
+          statusCode: 401,
+          headers,
+          body: JSON.stringify({ error: 'Invalid credentials' })
+        };
+      }
+
+      const { password: _, ...userResponse } = user;
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          user: userResponse,
+          token: user.token
+        })
+      };
     }
+
+    // GET ALL TICKETS (no auth required for demo)
+    if (event.httpMethod === 'GET' && path === '/tickets') {
+      console.log('Fetching all tickets, count:', tickets.length);
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(tickets)
+      };
+    }
+
+    // GET SINGLE TICKET
+    if (event.httpMethod === 'GET' && path.startsWith('/tickets/')) {
+      const ticketId = path.split('/')[2];
+      console.log('Fetching ticket:', ticketId);
+      
+      const ticket = tickets.find(t => t.id === ticketId);
+      
+      if (!ticket) {
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Ticket not found' })
+        };
+      }
+
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(ticket)
+      };
+    }
+
+    // CREATE TICKET (with auth)
+    if (event.httpMethod === 'POST' && path === '/tickets') {
+      // Check authentication
+      const user = authenticateUser(event.headers.authorization);
+      if (!user) {
+        return {
+          statusCode: 401,
+          headers,
+          body: JSON.stringify({ error: 'Authentication required' })
+        };
+      }
+
+      const body = JSON.parse(event.body);
+      const { title, description, status, priority } = body;
+      
+      console.log('Creating ticket:', { title, description, status, priority });
+      
+      // Validation
+      if (!title || !description) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Title and description are required' })
+        };
+      }
+
+      // Create ticket
+      const newTicket = {
+        id: ticketIdCounter.toString(),
+        title: title.trim(),
+        description: description.trim(),
+        status: status || 'open',
+        priority: priority || 'medium',
+        createdBy: user.id,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      tickets.push(newTicket);
+      ticketIdCounter++;
+      
+      console.log('Ticket created successfully:', newTicket.id);
+      
+      return {
+        statusCode: 201,
+        headers,
+        body: JSON.stringify(newTicket)
+      };
+    }
+
+    // UPDATE TICKET (with auth)
+    if (event.httpMethod === 'PUT' && path.startsWith('/tickets/')) {
+      // Check authentication
+      const user = authenticateUser(event.headers.authorization);
+      if (!user) {
+        return {
+          statusCode: 401,
+          headers,
+          body: JSON.stringify({ error: 'Authentication required' })
+        };
+      }
+
+      const ticketId = path.split('/')[2];
+      const body = JSON.parse(event.body);
+      const { title, description, status, priority } = body;
+      
+      console.log('Updating ticket:', ticketId, { title, description, status, priority });
+      
+      const ticketIndex = tickets.findIndex(t => t.id === ticketId);
+      
+      if (ticketIndex === -1) {
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Ticket not found' })
+        };
+      }
+
+      // Update ticket
+      if (title !== undefined) tickets[ticketIndex].title = title.trim();
+      if (description !== undefined) tickets[ticketIndex].description = description.trim();
+      if (status !== undefined) tickets[ticketIndex].status = status;
+      if (priority !== undefined) tickets[ticketIndex].priority = priority;
+      
+      tickets[ticketIndex].updatedAt = new Date().toISOString();
+
+      console.log('Ticket updated successfully:', ticketId);
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(tickets[ticketIndex])
+      };
+    }
+
+    // DELETE TICKET (with auth)
+    if (event.httpMethod === 'DELETE' && path.startsWith('/tickets/')) {
+      // Check authentication
+      const user = authenticateUser(event.headers.authorization);
+      if (!user) {
+        return {
+          statusCode: 401,
+          headers,
+          body: JSON.stringify({ error: 'Authentication required' })
+        };
+      }
+
+      const ticketId = path.split('/')[2];
+      console.log('Deleting ticket:', ticketId);
+      
+      const ticketIndex = tickets.findIndex(t => t.id === ticketId);
+      
+      if (ticketIndex === -1) {
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Ticket not found' })
+        };
+      }
+
+      const deletedTicket = tickets.splice(ticketIndex, 1)[0];
+      
+      console.log('Ticket deleted successfully:', ticketId);
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(deletedTicket)
+      };
+    }
+
+    // If no route matches
+    return {
+      statusCode: 404,
+      headers,
+      body: JSON.stringify({ error: 'Route not found: ' + path })
+    };
+
   } catch (error) {
     console.error('API Error:', error);
-    response.statusCode = 500;
-    response.body = JSON.stringify({ error: 'Internal server error' });
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: 'Internal server error: ' + error.message })
+    };
   }
-
-  return response;
 };
-
-// Import handlers
-const { handleUsersRequest } = require('./users');
-const { handleTicketsRequest } = require('./tickets');

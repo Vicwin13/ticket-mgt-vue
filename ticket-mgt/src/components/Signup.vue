@@ -45,7 +45,7 @@ const Signup = async () => {
 
   try {
     // Use Netlify Function for registration
-    const response = await axios.post('/api/users/register', {
+    const response = await axios.post('/.netlify/functions/api/users/register', {
       firstName: firstName.value,
       lastName: lastName.value,
       email: email.value,
@@ -53,9 +53,13 @@ const Signup = async () => {
     })
 
     const { user, token } = response.data
+
+    localStorage.setItem('auth_token', token)
+    localStorage.setItem('user_id', user.id)
+    localStorage.setItem('user_name', `${user.firstName} ${user.lastName}`.trim())
     
     toast.success('Account created successfully! Please login.')
-    router.push('/login')
+    router.push('/dashboard')
   } catch (error) {
     console.error('Signup error:', error)
     if (error.response && error.response.data && error.response.data.error) {

@@ -1,9 +1,0 @@
-{
-  "name": "ticket-mgt-functions",
-  "version": "1.0.0",
-  "description": "Netlify Functions for ticket management app",
-  "main": "api.js",
-  "dependencies": {
-    "express": "^4.18.2"
-  }
-}

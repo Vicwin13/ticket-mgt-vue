@@ -7,7 +7,6 @@ import { useToast } from 'vue-toastification'
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
-
 const router = useRouter()
 const toast = useToast()
 
@@ -34,7 +33,7 @@ const Login = async () => {
 
   try {
     // Use Netlify Function for login
-    const response = await axios.post('/api/users', {
+    const response = await axios.post('/.netlify/functions/api/users', {
       email: email.value,
       password: password.value
     })

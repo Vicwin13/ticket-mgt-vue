@@ -162,6 +162,7 @@ const router = useRouter()
 // Get authentication token
 const getAuthHeaders = () => {
   const token = localStorage.getItem('auth_token')
+  console.log('using token:', token)
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
@@ -220,7 +221,7 @@ const highlightedTicketId = computed(() => {
 // Methods
 const fetchTickets = async () => {
   try {
-    const response = await axios.get('/api/tickets', { headers: getAuthHeaders() })
+    const response = await axios.get('/.netlify/functions/api/tickets', { headers: getAuthHeaders() })
     tickets.value = response.data
   } catch (error) {
     console.error('Error fetching tickets:', error)
@@ -317,7 +318,7 @@ const saveTicket = async () => {
 
     if (isEditMode.value) {
       // Update existing ticket
-      await axios.put(`/api/tickets/${ticketForm.value.id}`, ticketData, { headers: getAuthHeaders() })
+      await axios.put(`/.netlify/functions/api/tickets/${ticketForm.value.id}`, ticketData, { headers: getAuthHeaders() })
       toast.success('Ticket updated successfully')
     } else {
       // Create new ticket
@@ -327,7 +328,7 @@ const saveTicket = async () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
-      await axios.post('/api/tickets', newTicket, { headers: getAuthHeaders() })
+      await axios.post('/.netlify/functions/api/tickets', newTicket, { headers: getAuthHeaders() })
       toast.success('Ticket created successfully')
     }
 
@@ -355,7 +356,7 @@ const confirmDelete = async () => {
   if (!ticketToDelete.value) return
 
   try {
-    await axios.delete(`/api/tickets/${ticketToDelete.value.id}`, { headers: getAuthHeaders() })
+    await axios.delete(`/.netlify/functions/api/tickets/${ticketToDelete.value.id}`, { headers: getAuthHeaders() })
     toast.success('Ticket deleted successfully')
     await fetchTickets()
     closeDeleteModal()
